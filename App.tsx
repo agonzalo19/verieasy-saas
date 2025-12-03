@@ -5,6 +5,8 @@ import InvoiceWizard from './components/InvoiceWizard';
 import Settings from './components/Settings';
 import DatabaseManager from './components/DatabaseManager';
 import { VerifactuResponse, UserProfile, Cliente, SavedConcept } from './types';
+import LoginView from './LoginView';
+import { AuthProvider, useAuth } from './AuthContext';
 
 // Mock initial data
 const INITIAL_PROFILE: UserProfile = {
@@ -37,7 +39,8 @@ const INITIAL_CONCEPTS: SavedConcept[] = [
 
 type ViewState = 'DASHBOARD' | 'WIZARD' | 'SETTINGS' | 'DATABASE';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+    const { session, loading } = useAuth();
     const [view, setView] = useState<ViewState>('DASHBOARD');
     const [invoices, setInvoices] = useState<VerifactuResponse[]>([]);
     
@@ -69,6 +72,18 @@ const App: React.FC = () => {
     const handleAddConcept = (newConcept: SavedConcept) => {
         setSavedConcepts(prev => [...prev, newConcept]);
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-700">
+                Cargando...
+            </div>
+        );
+    }
+
+    if (!session) {
+        return <LoginView />;
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
@@ -124,5 +139,11 @@ const App: React.FC = () => {
         </div>
     );
 };
+
+const App: React.FC = () => (
+    <AuthProvider>
+        <AppContent />
+    </AuthProvider>
+);
 
 export default App;

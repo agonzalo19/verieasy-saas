@@ -1,3 +1,4 @@
+// types/index.ts
 
 // Enum values based on the PDF documentation
 export enum TipoFactura {
@@ -17,12 +18,13 @@ export enum TipoImpuesto {
 }
 
 export enum EstadoFactura {
-    PROFORMA = "Proforma", // New Status
+    PROFORMA = "PROFORMA", // Coincide con el Enum de SQL
     PENDIENTE = "Pendiente",
     CORRECTO = "Correcto",
     ACEPTADO_CON_ERRORES = "AceptadoConErrores",
     INCORRECTO = "Incorrecto",
-    ANULADA = "Anulada"
+    ANULADA = "Anulada",
+    EMITIDA = "EMITIDA" // Coincide con el Enum de SQL
 }
 
 // Line item structure
@@ -32,10 +34,10 @@ export interface FacturaLinea {
     precio_unitario: number;
     
     // Calculated fields required by API
-    base_imponible: string; // (cantidad * precio)
-    tipo_impositivo: string; // "21", "10", "4", "0"
+    base_imponible: string; 
+    tipo_impositivo: string; 
     impuesto: TipoImpuesto;
-    cuota_repercutida: string; // (base * tipo / 100)
+    cuota_repercutida: string; 
 }
 
 // Client structure
@@ -43,8 +45,8 @@ export interface Cliente {
     id?: string; // Optional for new clients
     nif: string;
     nombre: string;
-    direccion: string; // Made mandatory for F1
-    codigo_pais: string; // ISO 3166-1 alpha-2 (e.g., "ES")
+    direccion: string; 
+    codigo_pais: string; 
     email?: string;
 }
 
@@ -57,10 +59,10 @@ export interface FacturaDraft {
     fecha_operacion?: string;
     tipo_factura: TipoFactura;
     
-    is_proforma: boolean; // Flag to determine creation path
+    is_proforma: boolean; 
 
     // --- Rectifying Data (VeriFactu) ---
-    rectificativa_referencia?: string; // Num of original invoice
+    rectificativa_referencia?: string; 
     rectificativa_motivo?: string;
 
     // --- Participants ---
@@ -74,14 +76,14 @@ export interface FacturaDraft {
     
     // --- IRPF (Professional Retention) ---
     aplicar_irpf: boolean;
-    irpf_porcentaje: number; // e.g. 15 or 7
+    irpf_porcentaje: number; 
     importe_irpf_total: string;
 
-    importe_total: string; // (Base + IVA - IRPF)
+    importe_total: string; 
     
     // --- Commercial Data ---
-    condiciones_pago: string; // e.g., "Vencimiento a 30 días"
-    metodo_pago: string; // e.g., "Transferencia", "Bizum"
+    condiciones_pago: string; 
+    metodo_pago: string; 
     iban_emisor?: string;
     vigencia_oferta?: string;
 
@@ -94,7 +96,7 @@ export interface FacturaDraft {
 export interface VerifactuResponse {
     uuid: string;
     nif_emisor: string;
-    num_serie: string; // If proforma, this might be "PRO-TEMP-001"
+    num_serie: string; 
     fecha_expedicion: string;
     cliente_nombre: string;
     cliente_nif: string;
@@ -102,10 +104,10 @@ export interface VerifactuResponse {
     importe_total: string;
     
     // VeriFactu Traceability
-    url: string; // Verification URL
-    qr: string; // Base64 QR code
-    hash_anterior: string; // Hash of previous invoice
-    hash_propio: string; // Hash of this invoice
+    url: string; 
+    qr: string; 
+    hash_anterior: string; 
+    hash_propio: string; 
     
     estado: EstadoFactura;
     error_msg?: string;
@@ -128,23 +130,28 @@ export interface VerifactuResponse {
 
 export interface SavedConcept {
     id: string;
-    alias: string; // Short name for selection
+    alias: string; 
     descripcion: string;
     precio_default: number;
     iva_default: number;
 }
 
+// Corresponde a la tabla 'user_profiles' en Supabase
 export interface UserProfile {
+    user_id: string; // Añadido para hacer el fetch más fácil
     nif: string;
     nombre_fiscal: string;
     direccion: string;
-    iban: string; // Added IBAN
+    iban: string; 
     logo_url: string;
     brand_color: string;
-    series: { code: string; current_number: number }[]; // Track consecutive numbers
+    // Las series de numeración deben cargarse de la tabla 'configuracion_series' por separado
+    
+    // --- CONFIGURACIÓN CRÍTICA (FEATURE FLAG) ---
+    verifactu_activo: boolean; // <--- ¡CORRECCIÓN CRÍTICA!
     
     // --- EMAIL SETTINGS ---
-    email_contacto: string; // Reply-To
+    email_contacto: string; 
     email_proforma_asunto: string;
     email_proforma_cuerpo: string;
 }
